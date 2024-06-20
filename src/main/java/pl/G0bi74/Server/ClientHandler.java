@@ -1,56 +1,58 @@
 package pl.G0bi74.Server;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
 
 public class ClientHandler implements Runnable {
-    Socket socket;
-    Server server;
-    Scanner input;
-    PrintWriter output;
+    private Server server;
+    private Socket socket;
+    private Scanner input;
+    private PrintWriter output;
 
-    public ClientHandler(Socket socket, Server server) {
-        this.socket = socket;
+    public ClientHandler(Socket socket, Server server)  {
         this.server = server;
+        this.socket = socket;
 
         try {
             input = new Scanner(socket.getInputStream());
             output = new PrintWriter(socket.getOutputStream(), true);
-        }catch (IOException e){
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
-    public void send(String message) {output.println(message);}
+    public void send(String message) { output.println(message); }
 
     @Override
     public void run() {
-        output.println("stoi");
-    String login = input.nextLine();
-    server.addClient(login, this);
-    server.printClients();
-    server.broadcast("Server: "+ login +" joined.");
+        String login = input.nextLine();
+        server.addClient(login, this);
+        server.printClients();
+        server.broadcast("Server: "+ login + " Joined.");
 
-    String msg;
+        String message;
 
-    do{
-        msg = input.nextLine();
-        server.broadcast(login + ": " + msg);
-    }while(!msg.equals("bye"));
+        do{
+            message = input.nextLine();
+            if(message.startsWith("/")){
+                String priv[] = message.split(" ",2);
+                if(server.isClient(priv[0].substring(1))){
+                    server.privateMessage(priv[0].substring(1), priv[1]);
+                }else{
+                    output.println("There is no such client on the server.");
+                }
+            }else{
+                server.broadcast(login+": "+message);
+            }
 
-    server.removeClient(login);
-    server.broadcast("Server: "+ login +" left the server.");
-    try {
-        socket.close();
-    }catch (IOException e){
-        throw new RuntimeException(e);
+        }while(!message.equalsIgnoreCase("bye"));
+        server.removeClient(login);
+        server.broadcast("Server: "+ login + " left.");
+        try{
+            socket.close();
+        }catch(IOException e){
+            throw new RuntimeException(e);
+        }
     }
-    }
-
-
-
 }
