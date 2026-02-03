@@ -1,6 +1,4 @@
-# EEG Data Chat Server
-
-> **Sugerowana nowa nazwa projektu:** `EEG-Data-Chat-Server` lub `MultiClient-Chat-EEG-System`
+# MultiClient-Chat-EEG-System
 
 ## 📋 O Projekcie
 
